@@ -19,24 +19,33 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
+      align-items: center;
       height: 100vh;
       padding: 20px;
       position: relative;
       overflow: hidden;
     }
 
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 40px;
-      text-shadow: 2px 2px 5px #000;
-      z-index: 1;
-    }
-
-    #countdown, #event-message {
+    h1, #countdown, #event-message {
       font-size: 3rem;
       font-weight: bold;
       text-shadow: 2px 2px 8px #000;
+      z-index: 2;
+    }
+
+    #event-message {
+      display: none;
+    }
+
+    #logo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 60%;
+      opacity: 0.15;
       z-index: 1;
+      pointer-events: none;
     }
 
     canvas {
@@ -60,111 +69,115 @@
 </head>
 <body>
   <h1>Together in Faith – Countdown to Dare2Care</h1>
+
+  <!-- 🔥 Logo in the middle -->
+  <img src="logo.png" alt="Church Logo" id="logo" />
+
   <div id="countdown">Loading...</div>
-  <div id="event-message" style="display:none;">🎉 Dare2Care Is Here! 🎆</div>
+  <div id="event-message">🎉 Dare2Care Is Here! 🎆</div>
 
   <canvas id="fireworksCanvas"></canvas>
 
-<script>
-  const countdown = document.getElementById("countdown");
-  const eventMessage = document.getElementById("event-message");
-  const canvas = document.getElementById("fireworksCanvas");
-  const ctx = canvas.getContext("2d");
+  <script>
+    const countdown = document.getElementById("countdown");
+    const eventMessage = document.getElementById("event-message");
+    const canvas = document.getElementById("fireworksCanvas");
+    const ctx = canvas.getContext("2d");
 
-  function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-
-  window.addEventListener("resize", resizeCanvas);
-  resizeCanvas();
-
-  // Set a test target time (in 60 seconds)
-  const now = new Date();
-  const targetDate = new Date(now.getTime() + 60 * 1000).getTime();
-
-  let fireworks = [];
-
-  class Particle {
-    constructor(x, y, angle, speed, color) {
-      this.x = x;
-      this.y = y;
-      this.angle = angle;
-      this.speed = speed;
-      this.color = color;
-      this.alpha = 1;
-      this.radius = Math.random() * 2 + 1;
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
     }
 
-    update() {
-      const friction = 0.98;
-      this.x += Math.cos(this.angle) * this.speed;
-      this.y += Math.sin(this.angle) * this.speed;
-      this.speed *= friction;
-      this.alpha -= 0.01;
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    // 🕒 Set the real date: June 27
+    const targetDate = new Date(new Date().getFullYear(), 5, 27).getTime();
+
+    let fireworks = [];
+
+    class Particle {
+      constructor(x, y, angle, speed, color) {
+        this.x = x;
+        this.y = y;
+        this.angle = angle;
+        this.speed = speed;
+        this.color = color;
+        this.alpha = 1;
+        this.radius = Math.random() * 2 + 1;
+      }
+
+      update() {
+        const friction = 0.98;
+        this.x += Math.cos(this.angle) * this.speed;
+        this.y += Math.sin(this.angle) * this.speed;
+        this.speed *= friction;
+        this.alpha -= 0.01;
+      }
+
+      draw(ctx) {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.restore();
+      }
     }
 
-    draw(ctx) {
-      ctx.save();
-      ctx.globalAlpha = this.alpha;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-      ctx.fillStyle = this.color;
-      ctx.fill();
-      ctx.restore();
-    }
-  }
-
-  function createExplosion(x, y) {
-    const particles = [];
-    const color = `hsl(${Math.random() * 360}, 100%, 60%)`;
-    for (let i = 0; i < 50; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 6 + 2;
-      particles.push(new Particle(x, y, angle, speed, color));
-    }
-    return particles;
-  }
-
-  function updateFireworks() {
-    ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    fireworks.forEach((explosion, i) => {
-      explosion.forEach((particle) => particle.update());
-      explosion.forEach((particle) => particle.draw(ctx));
-      fireworks[i] = explosion.filter((p) => p.alpha > 0);
-    });
-
-    fireworks = fireworks.filter((explosion) => explosion.length > 0);
-
-    if (Math.random() < 0.08) {
-      const x = Math.random() * canvas.width;
-      const y = Math.random() * canvas.height * 0.5;
-      fireworks.push(createExplosion(x, y));
+    function createExplosion(x, y) {
+      const particles = [];
+      const color = `hsl(${Math.random() * 360}, 100%, 60%)`;
+      for (let i = 0; i < 50; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 6 + 2;
+        particles.push(new Particle(x, y, angle, speed, color));
+      }
+      return particles;
     }
 
-    requestAnimationFrame(updateFireworks);
-  }
+    function updateFireworks() {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  function updateCountdown() {
-    const now = new Date().getTime();
-    const distance = targetDate - now;
+      fireworks.forEach((explosion, i) => {
+        explosion.forEach((particle) => particle.update());
+        explosion.forEach((particle) => particle.draw(ctx));
+        fireworks[i] = explosion.filter((p) => p.alpha > 0);
+      });
 
-    if (distance <= 0) {
-      countdown.style.display = "none";
-      eventMessage.style.display = "block";
-      updateFireworks();
-      return;
+      fireworks = fireworks.filter((explosion) => explosion.length > 0);
+
+      if (Math.random() < 0.08) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height * 0.5;
+        fireworks.push(createExplosion(x, y));
+      }
+
+      requestAnimationFrame(updateFireworks);
     }
 
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-    countdown.innerHTML = `${minutes}m ${seconds}s`;
-  }
+    function updateCountdown() {
+      const now = new Date().getTime();
+      const distance = targetDate - now;
 
-  setInterval(updateCountdown, 1000);
-</script>
+      if (distance <= 0) {
+        countdown.style.display = "none";
+        eventMessage.style.display = "block";
+        updateFireworks();
+        return;
+      }
 
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+      countdown.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    setInterval(updateCountdown, 1000);
+  </script>
 </body>
 </html>
