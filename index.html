@@ -10,31 +10,35 @@
       box-sizing: border-box;
     }
 
-    body {
-      background: url('terren-hurst-KU66acygwIY-unsplash.jpg') no-repeat center center fixed;
-      background-size: cover;
+    html, body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: #ffffff;
-      text-align: center;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+      background-color: #000;
+    }
+
+    /* 🔹 Section 1 - Hero with background image */
+    .hero {
+      position: relative;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      padding: 20px;
-      position: relative;
-      overflow: hidden;
+      text-align: center;
+      background: url('terren-hurst-KU66acygwIY-unsplash.jpg') no-repeat center center fixed;
+      background-size: cover;
     }
 
-    h1, #countdown, #event-message {
-      font-size: 3rem;
-      font-weight: bold;
-      text-shadow: 2px 2px 8px #000;
-      z-index: 2;
-    }
-
-    #event-message {
-      display: none;
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      z-index: 0;
     }
 
     #logo {
@@ -42,42 +46,104 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      max-width: 60%;
-      opacity: 0.15;
-      z-index: 1;
-      pointer-events: none;
-    }
-
-    canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
+      width: 1024px;
+      max-width: 90%;
+      opacity: 0.08;
       z-index: 0;
       pointer-events: none;
     }
 
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      padding: 30px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 12px;
+      max-width: 600px;
+      width: 90%;
+    }
+
+    h1, #countdown, #event-message {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+      text-shadow: 1px 1px 6px #000;
+    }
+
+    #event-message {
+      display: none;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* 🔹 Section 2 - Dare2Care info image */
+    .info {
+      padding: 60px 20px;
+      background-color: #111;
+      text-align: center;
+    }
+
+    .info img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+    }
+
+    .info h2 {
+      font-size: 2rem;
+      margin: 30px 0 10px;
+    }
+
+    .info p {
+      max-width: 800px;
+      margin: 0 auto;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      color: #ccc;
+    }
+
     @media (max-width: 600px) {
-      h1 {
-        font-size: 2rem;
+      h1, #countdown, #event-message {
+        font-size: 1.6rem;
       }
 
-      #countdown, #event-message {
-        font-size: 2rem;
+      .info h2 {
+        font-size: 1.5rem;
       }
     }
   </style>
 </head>
 <body>
-  <h1>Together in Faith – Countdown to Dare2Care</h1>
+  <!-- 🔹 Section 1: Hero with background image and logo -->
+  <section class="hero">
+    <div class="overlay"></div>
+    <img src="logo.png" alt="Logo" id="logo">
+    <div class="hero-content">
+      <h1>Together in Faith – Countdown to Dare2Care</h1>
+      <div id="countdown">Loading...</div>
+      <div id="event-message">🎉 Dare2Care Is Here! 🎆</div>
+    </div>
+    <canvas id="fireworksCanvas"></canvas>
+  </section>
 
-  <!-- 🔥 Logo in the middle -->
-  <img src="logo.png" alt="Church Logo" id="logo" />
+  <!-- 🔹 Section 2: Dare2Care Info Image -->
+  <section class="info">
+    <img src="Dare2care.jpg" alt="Dare2Care Poster">
+    <h2>What is Dare2Care?</h2>
+    <p>
+      Dare2Care is a powerful movement of faith, compassion and unity. Join us on August 1st for a transformative event
+      filled with hope, service and togetherness.
+    </p>
+  </section>
 
-  <div id="countdown">Loading...</div>
-  <div id="event-message">🎉 Dare2Care Is Here! 🎆</div>
-
-  <canvas id="fireworksCanvas"></canvas>
-
+  <!-- 🔸 JavaScript -->
   <script>
     const countdown = document.getElementById("countdown");
     const eventMessage = document.getElementById("event-message");
@@ -92,9 +158,7 @@
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
-    // 🕒 Set the real date: June 27
-    const targetDate = new Date(new Date().getFullYear(), 5, 27).getTime();
-
+    const targetDate = new Date("2025-08-01T00:00:00").getTime();
     let fireworks = [];
 
     class Particle {
@@ -159,23 +223,40 @@
       requestAnimationFrame(updateFireworks);
     }
 
-    function updateCountdown() {
-      const now = new Date().getTime();
-      const distance = targetDate - now;
+    function getMonthDifferenceStrict(from, to) {
+  const yearDiff = to.getFullYear() - from.getFullYear();
+  const monthDiff = to.getMonth() - from.getMonth();
+  let months = yearDiff * 12 + monthDiff;
 
-      if (distance <= 0) {
-        countdown.style.display = "none";
-        eventMessage.style.display = "block";
-        updateFireworks();
-        return;
-      }
+  // If the current day is greater than the target day, we haven't completed the full month yet
+  if (from.getDate() > to.getDate()) {
+    months -= 1;
+  }
 
-      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-      countdown.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-    }
+  return Math.max(0, months);
+}
+
+function updateCountdown() {
+  const now = new Date();
+  const distance = targetDate - now.getTime();
+
+  if (distance <= 0) {
+    countdown.style.display = "none";
+    eventMessage.style.display = "block";
+    updateFireworks();
+    return;
+  }
+
+  const months = getMonthDifferenceStrict(now, new Date(targetDate));
+  const days = Math.floor(distance / (1000 * 60 * 60 * 24)) % 30;
+  const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+  countdown.innerHTML = `${months}mo ${days}d ${hours}h ${minutes}m ${seconds}s`;
+}
+
+    
 
     setInterval(updateCountdown, 1000);
   </script>
